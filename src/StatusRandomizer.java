@@ -8,23 +8,25 @@ class StatusRandomizer extends Thread {
     private static final List<Status> VALUES = List.of(Status.values());
     private static final int SIZE = VALUES.size();
     private static final Random RANDOM = new Random();
-    private final Program program;
+    private final Object lock;
 
-    public StatusRandomizer(Program program) {
-        this.program = program;
+    public StatusRandomizer(Object lock) {
+        this.lock = lock;
         this.setName("Daemon");
+        this.setDaemon(true);
     }
 
 
     @Override
-    public synchronized void run() {
+    public void run() {
         while (true) {
             try {
                 Program.status = VALUES.get(RANDOM.nextInt(SIZE));
                 System.out.println("new status is - "+Program.status.toString());
-                synchronized (program) {
-                    System.out.println(Thread.currentThread().getName()+" wait");
-                    wait();
+                synchronized (lock) {
+                    System.out.println(Thread.currentThread().getName() + " wait");
+                    lock.notify();
+                    lock.wait();
                     System.out.println(Thread.currentThread().getName()+ " resume");
                 }
             } catch (InterruptedException e) {

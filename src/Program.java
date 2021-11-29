@@ -14,9 +14,6 @@ public class Program extends Thread {
 
 
     public Program() {
-        StatusRandomizer statusRandomizer = new StatusRandomizer(this);
-        statusRandomizer.setDaemon(true);
-        statusRandomizer.start();
         this.setName("Abstract program");
     }
 
@@ -29,7 +26,7 @@ public class Program extends Thread {
                 sleep(1000);
             } catch (InterruptedException e) {
                 System.out.println(Thread.currentThread().getName() + " is stopped");
-
+                break;
             }
         }
     }

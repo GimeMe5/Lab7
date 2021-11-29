@@ -1,18 +1,21 @@
-import jdk.swing.interop.SwingInterOpUtils;
-import org.w3c.dom.ls.LSOutput;
+
 
 /**
  * @author Artyom Kulagin
  */
 public class Supervisor {
 
-    private final Program program;
+    private Program program;
+    private final Object lock;
 
-    public Supervisor(Program program) {
-        this.program = program;
+    public Supervisor() {
+        lock = new Object();
+        StatusRandomizer statusRandomizer = new StatusRandomizer(lock);
+        statusRandomizer.start();
     }
 
     public void startProgram() {
+        program = new Program();
         program.start();
     }
 
@@ -21,16 +24,13 @@ public class Supervisor {
     }
 
     public void checkStatus() throws InterruptedException {
+        startProgram();
         while (true) {
-            Thread.sleep(1000);
+//            Thread.sleep(1000);
             if (Program.status == Status.UNKNOWN || Program.status == Status.STOPPING) {
                 System.out.println(program.getName() + " trying to stop");
                 stopProgram();
-                try {
-                    program.join();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
+                program.join();
                 System.out.println(program.getName() + " trying to restart");
                 startProgram();
             } else if (Program.status == Status.FATAL_ERROR) {
@@ -39,9 +39,10 @@ public class Supervisor {
                 break;
             }
             System.out.println("before");
-            synchronized (program) {
+            synchronized (lock) {
                 System.out.println("notify");
-                notify();
+                lock.notify();
+                lock.wait();
             }
             System.out.println("after");
         }

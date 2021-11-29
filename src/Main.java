@@ -3,9 +3,7 @@
  */
 public class Main {
     public static void main(String[] args) throws InterruptedException {
-        Program program = new Program();
-        program.start();
-        Supervisor supervisor = new Supervisor(program);
+        Supervisor supervisor = new Supervisor();
         Thread.sleep(1000);
         supervisor.checkStatus();
     }
