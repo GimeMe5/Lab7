@@ -5,37 +5,46 @@ import org.w3c.dom.ls.LSOutput;
  * @author Artyom Kulagin
  */
 public class Supervisor {
-    static Program program = new Program();
 
-    static void stop() {
-        program.interrupt();
+    private final Program program;
+
+    public Supervisor(Program program) {
+        this.program = program;
     }
 
-    static void start() {
+    public void startProgram() {
         program.start();
     }
 
-    public synchronized static void main(String[] args) throws InterruptedException {
-        start();
-        while (true) {
+    public void stopProgram() {
+        program.interrupt();
+    }
 
-            switch (Program.status.toString()) {
-                case "STOPPING":
-                    System.out.println("I interrupt this!");
-                    program.wait();
-                    start();
-                    return;
-                case "FATAL_ERROR":
-                    System.out.println("I interrupt this!");
-                    stop();
-                    return;
-                case "RUNNING":
-                    if (!program.isAlive()) {
-                        start();
-                        break;
-                    }
-            }
+    public void checkStatus() throws InterruptedException {
+        while (true) {
             Thread.sleep(1000);
+            if (Program.status == Status.UNKNOWN || Program.status == Status.STOPPING) {
+                System.out.println(program.getName() + " trying to stop");
+                stopProgram();
+                try {
+                    program.join();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                System.out.println(program.getName() + " trying to restart");
+                startProgram();
+            } else if (Program.status == Status.FATAL_ERROR) {
+                System.out.println(program.getName() + " trying to interrupt");
+                stopProgram();
+                break;
+            }
+            System.out.println("before");
+            synchronized (program) {
+                System.out.println("notify");
+                notify();
+            }
+            System.out.println("after");
         }
     }
+
 }

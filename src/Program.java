@@ -11,27 +11,26 @@ import java.util.function.DoubleToIntFunction;
  */
 public class Program extends Thread {
     public static Status status = Status.UNKNOWN;
-    public static final StatusRandomizer daemon = new StatusRandomizer();
+
 
     public Program() {
-        daemon.setDaemon(true);
-        daemon.start();
-        this.setName("AbstractProgram");
+        StatusRandomizer statusRandomizer = new StatusRandomizer(this);
+        statusRandomizer.setDaemon(true);
+        statusRandomizer.start();
+        this.setName("Abstract program");
     }
 
     @Override
-    public synchronized void run() {
+    public void run() {
+        System.out.println(Thread.currentThread().getName() + " is started");
         while (!isInterrupted()) {
             try {
-                System.out.println(Thread.currentThread().getName() + " is active, status is - " + status);
+                System.out.println(Thread.currentThread().getName() + " is working");
                 sleep(1000);
-                notify();
             } catch (InterruptedException e) {
-                System.out.println(Thread.currentThread().getName() + " is interrupted");
-                notify();
-                return;
-            }
+                System.out.println(Thread.currentThread().getName() + " is stopped");
 
+            }
         }
     }
 }
